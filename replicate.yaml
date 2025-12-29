@@ -1,0 +1,11 @@
+# Configuration for Replicate deployment
+name: professional-document-suite
+description: A comprehensive tool for PDF manipulation and image conversion
+license: mit
+labels:
+  - pdf
+  - image
+  - conversion
+  - document
+  - utility
+predict: python predict.py

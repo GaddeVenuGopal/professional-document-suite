@@ -1,0 +1,518 @@
+import streamlit as st
+from modules.pdf_operations import merge_pdfs, split_pdf, rotate_pdf, compress_pdf, unlock_pdf, protect_with_password, remove_password, add_digital_signature
+from modules.page_operations import extract_pages, delete_pages
+import os
+
+# Set page configuration
+st.set_page_config(
+    page_title="Professional PDF Toolkit",
+    page_icon="📄",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Custom CSS for professional appearance
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 2.5rem;
+        color: #1E3A8A;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .subheader {
+        font-size: 1.5rem;
+        color: #2D3748;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+    .operation-card {
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .result-box {
+        background-color: #F7FAFC;
+        border-left: 4px solid #3182CE;
+        padding: 1rem;
+        border-radius: 0 8px 8px 0;
+        margin-top: 1rem;
+    }
+    footer {visibility: hidden;}
+</style>
+""", unsafe_allow_html=True)
+
+# Main header
+st.markdown("<h1 class='main-header'>Professional PDF Toolkit</h1>", unsafe_allow_html=True)
+st.markdown("<div style='text-align: center; margin-bottom: 2rem;'>A comprehensive solution for all your PDF manipulation needs</div>", unsafe_allow_html=True)
+
+# Initialize session state variables
+if 'current_tab' not in st.session_state:
+    st.session_state.current_tab = "Document Tools"
+
+# Create tabs for Document Tools and Security Tools
+tab1, tab2 = st.tabs(["Document Tools", "Security Tools"])
+
+# Initialize session state for file uploaders
+if 'document_files' not in st.session_state:
+    st.session_state.document_files = None
+    
+if 'security_files' not in st.session_state:
+    st.session_state.security_files = None
+
+with tab1:
+    # Document Tools Tab
+    st.header("Document Tools")
+    st.session_state.current_tab = "Document Tools"
+    
+    # Sidebar navigation for Document Tools
+    st.sidebar.title("Document Tools")
+    operation = st.sidebar.selectbox(
+        "Select Operation",
+        [
+            "Merge PDFs",
+            "Split PDF",
+            "Rotate PDF",
+            "Compress PDF",
+            "Extract Pages",
+            "Delete Pages"
+        ],
+        key="document_operation"
+    )
+    
+    # File upload section
+    st.sidebar.subheader("Upload Files")
+    st.session_state.document_files = st.sidebar.file_uploader(
+        "Choose PDF files",
+        type=["pdf"],
+        accept_multiple_files=True,
+        key="document_uploader"
+    )
+    
+    uploaded_files = st.session_state.document_files
+    
+    # Main content area based on selected operation
+    if operation == "Merge PDFs":
+        st.markdown("<h2 class='subheader'>Merge Multiple PDFs</h2>", unsafe_allow_html=True)
+        st.markdown("<div class='operation-card'>Combine multiple PDF files into a single document</div>", unsafe_allow_html=True)
+        
+        if uploaded_files and len(uploaded_files) > 1:
+            if st.button("Merge PDFs"):
+                with st.spinner("Merging PDFs..."):
+                    try:
+                        merged_file_path = merge_pdfs([file for file in uploaded_files])
+                        if merged_file_path:
+                            st.success("PDFs merged successfully!")
+                            with open(merged_file_path, "rb") as file:
+                                st.download_button(
+                                    label="Download Merged PDF",
+                                    data=file,
+                                    file_name="merged_document.pdf",
+                                    mime="application/pdf"
+                                )
+                            
+                            # Clean up temporary file
+                            if os.path.exists(merged_file_path):
+                                os.remove(merged_file_path)
+                    except Exception as e:
+                        st.error(f"An error occurred: {str(e)}")
+        elif uploaded_files and len(uploaded_files) == 1:
+            st.info("Please upload at least two PDF files to merge.")
+        else:
+            st.info("Please upload PDF files to get started.")
+
+    elif operation == "Split PDF":
+        st.markdown("<h2 class='subheader'>Split PDF</h2>", unsafe_allow_html=True)
+        st.markdown("<div class='operation-card'>Divide a PDF file into multiple documents</div>", unsafe_allow_html=True)
+        
+        if uploaded_files and len(uploaded_files) == 1:
+            split_method = st.radio("Split Method", ["By Page Range", "Each Page as Separate File"])
+            
+            if split_method == "By Page Range":
+                col1, col2 = st.columns(2)
+                with col1:
+                    start_page = st.number_input("Start Page", min_value=1, value=1)
+                with col2:
+                    end_page = st.number_input("End Page", min_value=start_page, value=start_page+1)
+                    
+                if st.button("Split PDF"):
+                    with st.spinner("Splitting PDF..."):
+                        try:
+                            split_files = split_pdf(uploaded_files[0], method="range", start=start_page, end=end_page)
+                            if split_files:
+                                st.success("PDF split successfully!")
+                                for i, file_path in enumerate(split_files):
+                                    with open(file_path, "rb") as file:
+                                        st.download_button(
+                                            label=f"Download Split Part {i+1}",
+                                            data=file,
+                                            file_name=f"split_part_{i+1}.pdf",
+                                            mime="application/pdf"
+                                        )
+                                    
+                                    # Clean up temporary file
+                                    if os.path.exists(file_path):
+                                        os.remove(file_path)
+                        except Exception as e:
+                            st.error(f"An error occurred: {str(e)}")
+            else:  # Each Page as Separate File
+                if st.button("Split PDF"):
+                    with st.spinner("Splitting PDF..."):
+                        try:
+                            split_files = split_pdf(uploaded_files[0], method="individual")
+                            if split_files:
+                                st.success("PDF split successfully!")
+                                for i, file_path in enumerate(split_files):
+                                    with open(file_path, "rb") as file:
+                                        st.download_button(
+                                            label=f"Download Page {i+1}",
+                                            data=file,
+                                            file_name=f"page_{i+1}.pdf",
+                                            mime="application/pdf"
+                                        )
+                                    
+                                    # Clean up temporary file
+                                    if os.path.exists(file_path):
+                                        os.remove(file_path)
+                        except Exception as e:
+                            st.error(f"An error occurred: {str(e)}")
+        elif uploaded_files and len(uploaded_files) > 1:
+            st.info("Please upload only one PDF file for splitting.")
+        else:
+            st.info("Please upload a PDF file to get started.")
+
+    elif operation == "Rotate PDF":
+        st.markdown("<h2 class='subheader'>Rotate PDF</h2>", unsafe_allow_html=True)
+        st.markdown("<div class='operation-card'>Rotate pages in a PDF document</div>", unsafe_allow_html=True)
+        
+        if uploaded_files and len(uploaded_files) == 1:
+            rotation_angle = st.selectbox("Rotation Angle", [90, 180, 270])
+            page_option = st.radio("Pages to Rotate", ["All Pages", "Specific Pages"])
+            
+            pages_to_rotate = None
+            if page_option == "Specific Pages":
+                pages_input = st.text_input("Enter page numbers (comma separated)", "1,2,3")
+                try:
+                    pages_to_rotate = [int(x.strip()) for x in pages_input.split(",")]
+                except ValueError:
+                    st.error("Please enter valid page numbers separated by commas.")
+            
+            if st.button("Rotate PDF"):
+                with st.spinner("Rotating PDF..."):
+                    try:
+                        rotated_file_path = rotate_pdf(uploaded_files[0], rotation_angle, pages_to_rotate)
+                        if rotated_file_path:
+                            st.success("PDF rotated successfully!")
+                            with open(rotated_file_path, "rb") as file:
+                                st.download_button(
+                                    label="Download Rotated PDF",
+                                    data=file,
+                                    file_name="rotated_document.pdf",
+                                    mime="application/pdf"
+                                )
+                            
+                            # Clean up temporary file
+                            if os.path.exists(rotated_file_path):
+                                os.remove(rotated_file_path)
+                    except Exception as e:
+                        st.error(f"An error occurred: {str(e)}")
+        elif uploaded_files and len(uploaded_files) > 1:
+            st.info("Please upload only one PDF file for rotation.")
+        else:
+            st.info("Please upload a PDF file to get started.")
+
+    elif operation == "Compress PDF":
+        st.markdown("<h2 class='subheader'>Compress PDF</h2>", unsafe_allow_html=True)
+        st.markdown("<div class='operation-card'>Reduce the file size of your PDF document</div>", unsafe_allow_html=True)
+        
+        if uploaded_files and len(uploaded_files) == 1:
+            compression_level = st.slider("Compression Level", 1, 9, 5)
+            
+            if st.button("Compress PDF"):
+                with st.spinner("Compressing PDF..."):
+                    try:
+                        compressed_file_path = compress_pdf(uploaded_files[0], compression_level)
+                        if compressed_file_path:
+                            st.success("PDF compressed successfully!")
+                            original_size = uploaded_files[0].size
+                            compressed_size = os.path.getsize(compressed_file_path)
+                            st.info(f"Original size: {original_size} bytes | Compressed size: {compressed_size} bytes | Saved: {original_size - compressed_size} bytes ({((original_size - compressed_size) / original_size * 100):.1f}%)")
+                            
+                            with open(compressed_file_path, "rb") as file:
+                                st.download_button(
+                                    label="Download Compressed PDF",
+                                    data=file,
+                                    file_name="compressed_document.pdf",
+                                    mime="application/pdf"
+                                )
+                            
+                            # Clean up temporary file
+                            if os.path.exists(compressed_file_path):
+                                os.remove(compressed_file_path)
+                    except Exception as e:
+                        st.error(f"An error occurred: {str(e)}")
+        elif uploaded_files and len(uploaded_files) > 1:
+            st.info("Please upload only one PDF file for compression.")
+        else:
+            st.info("Please upload a PDF file to get started.")
+
+    elif operation == "Extract Pages":
+        st.markdown("<h2 class='subheader'>Extract Pages</h2>", unsafe_allow_html=True)
+        st.markdown("<div class='operation-card'>Extract specific pages from a PDF document</div>", unsafe_allow_html=True)
+        
+        if uploaded_files and len(uploaded_files) == 1:
+            col1, col2 = st.columns(2)
+            with col1:
+                start_page = st.number_input("Start Page", min_value=1, value=1)
+            with col2:
+                end_page = st.number_input("End Page", min_value=start_page, value=start_page)
+                
+            if st.button("Extract Pages"):
+                with st.spinner("Extracting pages..."):
+                    try:
+                        extracted_file_path = extract_pages(uploaded_files[0], start_page, end_page)
+                        if extracted_file_path:
+                            st.success("Pages extracted successfully!")
+                            with open(extracted_file_path, "rb") as file:
+                                st.download_button(
+                                    label="Download Extracted Pages",
+                                    data=file,
+                                    file_name="extracted_pages.pdf",
+                                    mime="application/pdf"
+                                )
+                            
+                            # Clean up temporary file
+                            if os.path.exists(extracted_file_path):
+                                os.remove(extracted_file_path)
+                    except Exception as e:
+                        st.error(f"An error occurred: {str(e)}")
+        elif uploaded_files and len(uploaded_files) > 1:
+            st.info("Please upload only one PDF file for page extraction.")
+        else:
+            st.info("Please upload a PDF file to get started.")
+
+    elif operation == "Delete Pages":
+        st.markdown("<h2 class='subheader'>Delete Pages</h2>", unsafe_allow_html=True)
+        st.markdown("<div class='operation-card'>Remove specific pages from a PDF document</div>", unsafe_allow_html=True)
+        
+        if uploaded_files and len(uploaded_files) == 1:
+            pages_to_delete = st.text_input("Enter page numbers to delete (comma separated)", "1,2")
+            try:
+                pages_list = [int(x.strip()) for x in pages_to_delete.split(",")]
+            except ValueError:
+                st.error("Please enter valid page numbers separated by commas.")
+                pages_list = []
+                
+            if st.button("Delete Pages") and pages_list:
+                with st.spinner("Deleting pages..."):
+                    try:
+                        deleted_file_path = delete_pages(uploaded_files[0], pages_list)
+                        if deleted_file_path:
+                            st.success("Pages deleted successfully!")
+                            with open(deleted_file_path, "rb") as file:
+                                st.download_button(
+                                    label="Download Modified PDF",
+                                    data=file,
+                                    file_name="modified_document.pdf",
+                                    mime="application/pdf"
+                                )
+                            
+                            # Clean up temporary file
+                            if os.path.exists(deleted_file_path):
+                                os.remove(deleted_file_path)
+                    except Exception as e:
+                        st.error(f"An error occurred: {str(e)}")
+        elif uploaded_files and len(uploaded_files) > 1:
+            st.info("Please upload only one PDF file for page deletion.")
+        else:
+            st.info("Please upload a PDF file to get started.")
+
+with tab2:
+    # Security Tools Tab
+    st.header("Security Tools")
+    st.session_state.current_tab = "Security Tools"
+    
+    # Sidebar navigation for Security Tools
+    st.sidebar.title("Security Tools")
+    security_operation = st.sidebar.selectbox(
+        "Select Security Operation",
+        [
+            "Unlock PDF",
+            "Protect with Password",
+            "Remove Password",
+            "Digital Signature"
+        ],
+        key="security_operation"
+    )
+    
+    # File upload section for Security Tools
+    st.sidebar.subheader("Upload Files")
+    st.session_state.security_files = st.sidebar.file_uploader(
+        "Choose PDF files for security operations",
+        type=["pdf"],
+        accept_multiple_files=True,
+        key="security_uploader"
+    )
+    
+    security_uploaded_files = st.session_state.security_files
+    
+    # Main content area based on selected security operation
+    if security_operation == "Unlock PDF":
+        st.markdown("<h2 class='subheader'>Unlock PDF</h2>", unsafe_allow_html=True)
+        st.markdown("<div class='operation-card'>Remove password protection from a PDF document</div>", unsafe_allow_html=True)
+        
+        if security_uploaded_files and len(security_uploaded_files) == 1:
+            password = st.text_input("Enter PDF Password", type="password")
+            
+            if st.button("Unlock PDF") and password:
+                with st.spinner("Unlocking PDF..."):
+                    try:
+                        unlocked_file_path = unlock_pdf(security_uploaded_files[0], password)
+                        if unlocked_file_path:
+                            st.success("PDF unlocked successfully!")
+                            with open(unlocked_file_path, "rb") as file:
+                                st.download_button(
+                                    label="Download Unlocked PDF",
+                                    data=file,
+                                    file_name="unlocked_document.pdf",
+                                    mime="application/pdf"
+                                )
+                            
+                            # Clean up temporary file
+                            if os.path.exists(unlocked_file_path):
+                                os.remove(unlocked_file_path)
+                        else:
+                            st.error("Failed to unlock PDF. Please check the password.")
+                    except Exception as e:
+                        st.error(f"An error occurred: {str(e)}")
+        elif security_uploaded_files and len(security_uploaded_files) > 1:
+            st.info("Please upload only one PDF file for unlocking.")
+        else:
+            st.info("Please upload a PDF file to get started.")
+
+    elif security_operation == "Protect with Password":
+        st.markdown("<h2 class='subheader'>Protect PDF with Password</h2>", unsafe_allow_html=True)
+        st.markdown("<div class='operation-card'>Add password protection to your PDF document</div>", unsafe_allow_html=True)
+        
+        if security_uploaded_files and len(security_uploaded_files) == 1:
+            password = st.text_input("Enter Password", type="password")
+            confirm_password = st.text_input("Confirm Password", type="password")
+            
+            if password and confirm_password:
+                if password != confirm_password:
+                    st.error("Passwords do not match!")
+                else:
+                    if st.button("Protect PDF"):
+                        with st.spinner("Protecting PDF with password..."):
+                            try:
+                                protected_file_path = protect_with_password(security_uploaded_files[0], password)
+                                if protected_file_path:
+                                    st.success("PDF protected successfully!")
+                                    with open(protected_file_path, "rb") as file:
+                                        st.download_button(
+                                            label="Download Protected PDF",
+                                            data=file,
+                                            file_name="protected_document.pdf",
+                                            mime="application/pdf"
+                                        )
+                                    
+                                    # Clean up temporary file
+                                    if os.path.exists(protected_file_path):
+                                        os.remove(protected_file_path)
+                            except Exception as e:
+                                st.error(f"An error occurred: {str(e)}")
+            elif password or confirm_password:
+                st.info("Please enter and confirm your password.")
+        elif security_uploaded_files and len(security_uploaded_files) > 1:
+            st.info("Please upload only one PDF file for password protection.")
+        else:
+            st.info("Please upload a PDF file to get started.")
+
+    elif security_operation == "Remove Password":
+        st.markdown("<h2 class='subheader'>Remove Password from PDF</h2>", unsafe_allow_html=True)
+        st.markdown("<div class='operation-card'>Remove password protection from your PDF document</div>", unsafe_allow_html=True)
+        
+        if security_uploaded_files and len(security_uploaded_files) == 1:
+            password = st.text_input("Enter PDF Password", type="password")
+            
+            if st.button("Remove Password") and password:
+                with st.spinner("Removing password from PDF..."):
+                    try:
+                        unprotected_file_path = remove_password(security_uploaded_files[0], password)
+                        if unprotected_file_path:
+                            st.success("Password removed successfully!")
+                            with open(unprotected_file_path, "rb") as file:
+                                st.download_button(
+                                    label="Download Unprotected PDF",
+                                    data=file,
+                                    file_name="unprotected_document.pdf",
+                                    mime="application/pdf"
+                                )
+                            
+                            # Clean up temporary file
+                            if os.path.exists(unprotected_file_path):
+                                os.remove(unprotected_file_path)
+                    except Exception as e:
+                        st.error(f"An error occurred: {str(e)}")
+        elif security_uploaded_files and len(security_uploaded_files) > 1:
+            st.info("Please upload only one PDF file for password removal.")
+        else:
+            st.info("Please upload a PDF file to get started.")
+
+    elif security_operation == "Digital Signature":
+        st.markdown("<h2 class='subheader'>Add Digital Signature</h2>", unsafe_allow_html=True)
+        st.markdown("<div class='operation-card'>Add digital signature to your PDF document</div>", unsafe_allow_html=True)
+        
+        if security_uploaded_files and len(security_uploaded_files) == 1:
+            st.info("Note: This tool creates a digital signature using a self-signed certificate for demonstration. For legally binding signatures, use a certified digital ID from a trusted certificate authority.")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                signer_name = st.text_input("Signer Name")
+                signer_location = st.text_input("Location")
+            with col2:
+                signature_reason = st.text_input("Reason for Signing")
+                contact_info = st.text_input("Contact Information")
+            
+            signature_type = st.radio("Signature Type", ["Visual Signature (with signature field)", "Document Catalog Signature"])
+            
+            if st.button("Add Digital Signature"):
+                if signer_name:
+                    with st.spinner("Adding digital signature..."):
+                        try:
+                            signature_info = {
+                                "name": signer_name,
+                                "location": signer_location,
+                                "reason": signature_reason,
+                                "contact_info": contact_info
+                            }
+                            signed_file_path = add_digital_signature(security_uploaded_files[0], signature_info)
+                            if signed_file_path:
+                                st.success("Digital signature added successfully!")
+                                st.info("The document has been digitally signed. You can verify the signature by opening the PDF in Adobe Reader or another PDF viewer that supports signature verification.")
+                                with open(signed_file_path, "rb") as file:
+                                    st.download_button(
+                                        label="Download Signed PDF",
+                                        data=file,
+                                        file_name="signed_document.pdf",
+                                        mime="application/pdf"
+                                    )
+                                
+                                # Clean up temporary file
+                                if os.path.exists(signed_file_path):
+                                    os.remove(signed_file_path)
+                        except Exception as e:
+                            st.error(f"An error occurred: {str(e)}")
+                            st.info("Note: Some PDF viewers may not display self-signed certificates as valid. For production use, please use certificates from a trusted Certificate Authority.")
+                else:
+                    st.error("Please enter the signer's name.")
+        elif security_uploaded_files and len(security_uploaded_files) > 1:
+            st.info("Please upload only one PDF file for digital signing.")
+        else:
+            st.info("Please upload a PDF file to get started.")
+
+# Footer
+st.markdown("---")
+st.markdown("<div style='text-align: center; color: #718096;'>Professional PDF Toolkit &copy; 2025 | Secure and Reliable PDF Manipulation</div>", unsafe_allow_html=True)
