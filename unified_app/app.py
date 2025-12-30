@@ -799,12 +799,7 @@ with tab2:
         - **Lossless Processing**: Maintain image quality throughout conversions
         - **Batch Processing**: Convert multiple images at once
         
-        ### 🔧 Technical Details
-        
-        - Built with Python and Streamlit for a responsive web interface
-        - Uses Pillow for image processing
-        - Utilizes img2pdf for high-quality PDF generation
-        - Modular architecture for easy maintenance and extensibility
+
         
         ### 💡 Tips
         
