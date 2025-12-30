@@ -6,3 +6,8 @@ endesive==2.19.2
 Pillow>=11.3.0
 img2pdf>=0.6.3
 PyMuPDF>=1.24.1
+pathlib
+importlib-metadata>=4.0.0
+six>=1.15.0
+pypdf>=3.0.0
+typing-extensions>=3.7.4

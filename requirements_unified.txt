@@ -1,9 +1,0 @@
-# Unified Document Suite Requirements
-streamlit==1.52.1
-PyPDF2==3.0.1
-cryptography==46.0.3
-endesive==2.19.2
-Pillow>=11.3.0
-img2pdf>=0.6.3
-PyMuPDF>=1.24.1
-pathlib
