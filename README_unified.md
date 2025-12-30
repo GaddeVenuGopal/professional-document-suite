@@ -1,6 +1,6 @@
 # Professional Document Suite
 
-A comprehensive, unified application that combines both PDF manipulation and image conversion capabilities in a single, professional interface. Deployable on Replicate for API access.
+A comprehensive, unified application that combines both PDF manipulation and image conversion capabilities in a single, professional interface. Deployable on Streamlit Cloud.
 
 ## Features
 
@@ -26,28 +26,9 @@ A comprehensive, unified application that combines both PDF manipulation and ima
   - Convert multiple images to PDF
   - Batch processing capabilities
 
-## Replicate Deployment
+## Deployment
 
-This application is configured for deployment on [Replicate](https://replicate.com). The following operations are available:
-
-### PDF Operations
-- `pdf_merge`: Merge multiple PDF files
-- `pdf_split`: Split a PDF by page range or individual pages
-- `pdf_rotate`: Rotate PDF pages
-- `pdf_compress`: Compress a PDF file
-- `pdf_unlock`: Unlock password-protected PDF
-- `pdf_protect`: Protect PDF with password
-- `pdf_remove_password`: Remove password from PDF
-- `pdf_add_signature`: Add digital signature to PDF
-- `pdf_extract_pages`: Extract specific pages
-- `pdf_delete_pages`: Delete specific pages
-
-### Image Operations
-- `image_jpg_to_png`: Convert JPG to PNG
-- `image_png_to_jpg`: Convert PNG to JPG
-- `image_webp_to_jpg`: Convert WebP to JPG
-- `image_webp_to_png`: Convert WebP to PNG
-- `image_to_pdf`: Convert images to PDF
+This application is ready for deployment on [Streamlit Cloud](https://streamlit.io/cloud).
 
 ## Local Installation
 
@@ -72,7 +53,6 @@ The application follows a modular design with separate modules for different fun
 - **Main Application**: `unified_app/app.py` - Contains the Streamlit UI and application logic
 - **PDF Operations Module**: `unified_app/modules/pdf_operations.py` - Contains all PDF manipulation functions
 - **Image Operations Module**: `unified_app/modules/image_operations.py` - Contains all image conversion functions
-- **Replicate Interface**: `predict.py` - Provides API interface for Replicate deployment
 - **Dependencies**: PyPDF2, PyMuPDF, endesive, Pillow, img2pdf for processing capabilities
 
 All original functionality from both the PDF tools and image converter projects is preserved and accessible through a unified interface.
