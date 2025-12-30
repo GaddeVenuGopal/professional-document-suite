@@ -540,7 +540,7 @@ with tab2:
             
             if jpg_file is not None:
                 # Display original image
-                st.image(jpg_file, caption="Original JPG Image", use_container_width=True)
+                st.image(jpg_file, caption="Original JPG Image", width="stretch")
                 
                 # Convert button
                 if st.button("Convert to PNG", key="jpg_to_png_btn"):
@@ -559,7 +559,7 @@ with tab2:
                                 converted_data = file.read()
                             
                             # Display converted image
-                            st.image(converted_data, caption="Converted PNG Image", use_container_width=True)
+                            st.image(converted_data, caption="Converted PNG Image", width="stretch")
                             
                             # Download button
                             st.download_button(
@@ -585,7 +585,7 @@ with tab2:
             
             if png_file is not None:
                 # Display original image
-                st.image(png_file, caption="Original PNG Image", use_container_width=True)
+                st.image(png_file, caption="Original PNG Image", width="stretch")
                 
                 # Convert button
                 if st.button("Convert to JPG", key="png_to_jpg_btn"):
@@ -604,7 +604,7 @@ with tab2:
                                 converted_data = file.read()
                             
                             # Display converted image
-                            st.image(converted_data, caption="Converted JPG Image", use_container_width=True)
+                            st.image(converted_data, caption="Converted JPG Image", width="stretch")
                             
                             # Download button
                             st.download_button(
@@ -636,7 +636,7 @@ with tab2:
             
             if webp_file_jpg is not None:
                 # Display original image
-                st.image(webp_file_jpg, caption="Original WebP Image", use_container_width=True)
+                st.image(webp_file_jpg, caption="Original WebP Image", width="stretch")
                 
                 # Convert button
                 if st.button("Convert to JPG", key="webp_to_jpg_btn"):
@@ -655,7 +655,7 @@ with tab2:
                                 converted_data = file.read()
                             
                             # Display converted image
-                            st.image(converted_data, caption="Converted JPG Image", use_container_width=True)
+                            st.image(converted_data, caption="Converted JPG Image", width="stretch")
                             
                             # Download button
                             st.download_button(
@@ -681,7 +681,7 @@ with tab2:
             
             if webp_file_png is not None:
                 # Display original image
-                st.image(webp_file_png, caption="Original WebP Image", use_container_width=True)
+                st.image(webp_file_png, caption="Original WebP Image", width="stretch")
                 
                 # Convert button
                 if st.button("Convert to PNG", key="webp_to_png_btn"):
@@ -700,7 +700,7 @@ with tab2:
                                 converted_data = file.read()
                             
                             # Display converted image
-                            st.image(converted_data, caption="Converted PNG Image", use_container_width=True)
+                            st.image(converted_data, caption="Converted PNG Image", width="stretch")
                             
                             # Download button
                             st.download_button(
@@ -740,7 +740,7 @@ with tab2:
             cols = st.columns(min(len(image_files), 4))
             for i, file in enumerate(image_files):
                 with cols[i % 4]:
-                    st.image(file, caption=f"Image {i+1}", use_container_width=True)
+                    st.image(file, caption=f"Image {i+1}", width="stretch")
             
             # Convert button
             if st.button("Convert to PDF", key="images_to_pdf_btn"):
